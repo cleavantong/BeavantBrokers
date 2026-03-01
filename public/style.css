@@ -1,0 +1,269 @@
+/* style.css */
+
+/* ── DESIGN TOKENS ─────────────────────────────────────────────────────── */
+:root {
+    /* Colors */
+    --brand-primary: #0069d9;
+    --brand-primary-hover: #0056b3;
+    --brand-secondary: #17a2b8;
+    --brand-secondary-hover: #138496;
+    --text-color: #343a40;
+    --text-muted: #6c757d;
+    --bg-light: #f0f2f5;
+    --bg-white: #ffffff;
+
+    /* Spacing */
+    --space-xxs: 0.25rem;
+    --space-xs: 0.5rem;
+    --space-sm: 0.75rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+
+    /* Border radius */
+    --radius-sm: 0.25rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+
+    /* Shadows */
+    --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* ── GLOBAL: RESET & TYPOGRAPHY ────────────────────────────────────────── */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--bg-light);
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* ── FORM & AUTH CARDS ────────────────────────────────────────────────── */
+.auth-card {
+    background: var(--bg-white);
+    max-width: 400px;
+    margin: var(--space-xl) auto;
+    padding: var(--space-lg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+}
+
+.form-control {
+    border-radius: var(--radius-sm);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-control:focus {
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.btn-primary {
+    background-color: var(--brand-primary);
+    border-color: var(--brand-primary);
+    transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: var(--brand-primary-hover);
+}
+
+.btn-success {
+    background-color: var(--brand-secondary);
+    border-color: var(--brand-secondary);
+}
+
+.btn-success:hover {
+    background-color: var(--brand-secondary-hover);
+}
+
+.text-link {
+    color: var(--brand-primary);
+    transition: color 0.2s;
+}
+
+.text-link:hover {
+    color: var(--brand-primary-hover);
+    text-decoration: underline;
+}
+
+/* ── LAYOUT CONTAINERS ────────────────────────────────────────────────── */
+.container-wide {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-md);
+}
+
+/* ── NAVIGATION BAR ───────────────────────────────────────────────────── */
+.navbar {
+    background-color: var(--bg-white);
+    box-shadow: var(--shadow-sm);
+}
+
+.navbar .navbar-brand {
+    font-weight: bold;
+    font-size: 1.75rem;
+    color: var(--brand-primary) !important;
+}
+
+.navbar-nav .nav-link {
+    margin-right: var(--space-xs);
+    color: var(--text-muted);
+    transition: color 0.2s;
+}
+
+.navbar-nav .nav-link.active,
+.navbar-nav .nav-link:hover {
+    color: var(--brand-primary) !important;
+}
+
+/* ── CARDS (DASHBOARD) ─────────────────────────────────────────────────── */
+.card {
+    border: none;
+    border-radius: var(--radius-md);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.card-icon {
+    font-size: 3rem;
+    color: var(--brand-primary);
+    margin-bottom: var(--space-sm);
+}
+
+.card-body h6 {
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: var(--space-xs);
+}
+
+.card-body p {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: var(--space-xs);
+}
+
+/* ── TABLES & FORMS IN DASHBOARD ──────────────────────────────────────── */
+.table th {
+    background-color: var(--bg-light);
+    font-weight: 600;
+}
+
+.form-select,
+.table input,
+.form-control {
+    border-radius: var(--radius-sm);
+}
+
+/* ── WATCHLIST & PREDICTIONS ──────────────────────────────────────────── */
+#stockSymbol {
+    border: 1px solid #ced4da;
+}
+
+#stockSymbol:focus {
+    border-color: var(--brand-secondary);
+    box-shadow: 0 0 0 0.1rem rgba(23, 162, 184, 0.25);
+}
+
+#trackBtn {
+    background-color: var(--brand-secondary);
+    border-color: var(--brand-secondary);
+    color: #fff;
+}
+
+#trackBtn:hover {
+    background-color: var(--brand-secondary-hover);
+    border-color: var(--brand-secondary-hover);
+}
+
+.btn-close {
+    /* ensure visible even if Bootstrap CSS misses */
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+/* ── FOOTER ───────────────────────────────────────────────────────────── */
+footer {
+    text-align: center;
+    padding: var(--space-md) 0;
+    margin-top: var(--space-lg);
+    color: var(--text-muted);
+}
+
+/* ── HERO BANNER & CARD OVERLAP ────────────────────────────────────────── */
+.hero {
+    background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.auth-card {
+    /* pull the card up so it overlaps the hero */
+    margin-top: -3rem;
+    position: relative;
+    z-index: 1;
+}
+
+/* ── ML PREDICTIONS CARDS ───────────────────────────────────────────────── */
+#prediction-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+    justify-content: flex-start;
+}
+
+.prediction-card {
+    flex: 0 0 500px;
+    /* make each card 220px wide */
+    width: 300px;
+
+    /* fixed width for even grid */
+}
+
+.prediction-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.prediction-card .card-body {
+    padding: var(--space-md);
+}
+
+.prediction-card .card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.prediction-card .card-price {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--brand-primary);
+}
+
+.prediction-card .btn-close {
+    transform: scale(1.2);
+}

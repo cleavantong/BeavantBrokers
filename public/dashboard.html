@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BeavantBrokers Dashboard</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <!-- Chart.js (for live charts) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <!-- Socket.IO client (served by your server) -->
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- Your custom styles (make sure this path is correct!) -->
+    <link rel="stylesheet" href="style.css" />
+
+    <!-- Custom CSS -->
+    <style>
+        /* ─── GLOBAL RESET & BASE ───────────────────────────────────────────────── */
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            color: #343a40;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        /* ─── NAVBAR ─────────────────────────────────────────────────────────────── */
+        .navbar {
+            background-color: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            letter-spacing: 1px;
+            font-size: 1.75rem;
+            color: #007bff !important;
+        }
+
+        .navbar-nav .nav-link {
+            color: #495057;
+            transition: color 0.2s;
+            font-weight: 500;
+            margin-right: 0.5rem;
+        }
+
+        .navbar-nav .nav-link:hover,
+        .navbar-nav .nav-link.active {
+            color: #007bff !important;
+        }
+
+        .btn-outline-danger {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+
+        .btn-outline-danger:hover {
+            background-color: #dc3545;
+            color: #fff;
+        }
+
+        /* ─── HERO BANNER ───────────────────────────────────────────────────────── */
+        .hero {
+            background: linear-gradient(135deg, rgba(0, 123, 255, 0.8), rgba(0, 200, 83, 0.8)), url('https://source.unsplash.com/1600x400/?finance,stocks') center/cover no-repeat;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .hero-overlay {
+            padding: 4rem 2rem;
+        }
+
+        .hero-overlay h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .hero-overlay p {
+            font-size: 1.25rem;
+            margin-bottom: 0;
+        }
+
+        /* ─── SECTION HEADERS ───────────────────────────────────────────────────── */
+        h2.section-title {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #dee2e6;
+            color: #343a40;
+        }
+
+        /* ─── CARDS ───────────────────────────────────────────────────────────────── */
+        .card {
+            border: none;
+            border-radius: 0.75rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            color: #007bff;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-body h6 {
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-body p.fs-3 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        /* ─── TABLES & FORMS ───────────────────────────────────────────────────── */
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .table input,
+        .form-control,
+        .form-select {
+            border-radius: 0.5rem;
+        }
+
+        .form-control:focus {
+            box-shadow: 0 0 0 0.1rem rgba(0, 123, 255, 0.25);
+        }
+
+        #add-row {
+            border-color: #17a2b8;
+            color: #17a2b8;
+        }
+
+        #add-row:hover {
+            background-color: #17a2b8;
+            color: #fff;
+        }
+
+        .remove-row {
+            background-color: transparent;
+            border: none;
+            color: #dc3545;
+        }
+
+        .remove-row:hover {
+            color: #a71d2a;
+        }
+
+        /* ─── WATCHLIST INPUT & BUTTON ──────────────────────────────────────────── */
+        #stockSymbol {
+            border: 1px solid #ced4da;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        #stockSymbol:focus {
+            border-color: #17a2b8;
+            box-shadow: 0 0 0 0.1rem rgba(23, 162, 184, 0.25);
+        }
+
+        #trackBtn {
+            background-color: #17a2b8;
+            border-color: #17a2b8;
+            color: #fff;
+        }
+
+        #trackBtn:hover {
+            background-color: #138496;
+            border-color: #117a8b;
+        }
+
+        /* ─── MARKET STATUS CLEAVENT TEXT ───────────────────────────────────────────────── */
+        #market-status {
+            font-style: italic;
+            color: #6c757d;
+        }
+
+        /* ─── FOOTER ─────────────────────────────────────────────────────────────── */
+        footer {
+            text-align: center;
+            padding: 1rem 0;
+            margin-top: 3rem;
+            color: #6c757d;
+        }
+    </style>
+</head>
+
+<body>
+
+
+    <div class="main-content">
+
+        <!-- Top Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#dashboard">
+                    <i class="fas fa-chart-line me-2"></i>BeavantBrokers
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#dashboard">
+                                <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#watchlist">
+                                <i class="fas fa-eye me-1"></i>Watchlist
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#predictions">
+                                <i class="fas fa-robot me-1"></i>Predictions
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#profile">
+                                <i class="fas fa-user-circle me-1"></i>My Profile
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#alerts">
+                                <i class="fas fa-bell me-1"></i>Alerts
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#analysis">
+                                <i class="fas fa-chart-area me-1"></i>Analysis
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <button id="logoutBtn" class="btn btn-outline-danger ms-3">
+                                <i class="fas fa-sign-out-alt me-1"></i>Log Out
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Banner -->
+        <section class="hero mb-5">
+            <div class="hero-overlay text-center text-white">
+                <h1>Welcome to BeavantBrokers</h1>
+                <p>Your personalized real-time portfolio and market monitoring platform</p>
+            </div>
+        </section>
+
+        <div class="dashboard-wrapper">
+            <main>
+                <!-- Dashboard Section -->
+                <section id="dashboard" style="display: none;">
+                    <h2 class="section-title">
+                        <i class="fas fa-chart-pie me-2"></i>Dashboard
+                    </h2>
+                    <div class="row g-4">
+                        <div class="col-12 col-md-4">
+                            <div class="card shadow-sm text-center">
+                                <div class="card-body">
+                                    <div class="card-icon">
+                                        <i class="fas fa-wallet"></i>
+                                    </div>
+                                    <h6>Total Value</h6>
+                                    <p class="fs-3 fw-bold" id="total-value">$0.00</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="card shadow-sm text-center">
+                                <div class="card-body">
+                                    <div class="card-icon">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <h6>Today's P&L</h6>
+                                    <p class="fs-3 text-success fw-bold" id="todays-pnl">$0.00 (0.0%)</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="card shadow-sm text-center">
+                                <div class="card-body">
+                                    <div class="card-icon">
+                                        <i class="fas fa-coins"></i>
+                                    </div>
+                                    <h6>Unrealized G/L</h6>
+                                    <p class="fs-3 text-danger fw-bold" id="unrealized-pnl">$0.00 (0.0%)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Watchlist Section -->
+                <section id="watchlist" style="display: none;">
+                    <h2 class="section-title">
+                        <i class="fas fa-chart-bar me-2"></i>Market Watchlist
+                    </h2>
+
+                    <!-- Market Status -->
+                    <div id="market-status" class="mb-3">Add to watchlist</div>
+
+                    <!-- Search & Track Input -->
+                    <div class="mb-4 d-flex gap-3 align-items-center">
+                        <input type="text" id="stockSymbol" class="form-control"
+                            placeholder="Enter stock symbol (e.g. TSLA)" />
+                        <button id="trackBtn" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>Add
+                        </button>
+                    </div>
+
+                    <!-- Tracked Stock Cards -->
+                    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4" id="watch-cards">
+                        <!-- cards get injected here -->
+                    </div>
+
+                    <!-- chart container, hidden until needed -->
+                    <div id="chart-container" class="mt-5" style="display:none;">
+                        <h5 id="chart-title"></h5>
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="btn-group" role="group" id="rangeBtns">
+                                <button type="button" data-range="1d" class="btn btn-outline-primary">1D</button>
+                                <button type="button" data-range="1w" class="btn btn-outline-primary">1W</button>
+                                <button type="button" data-range="1m" class="btn btn-outline-primary">1M</button>
+                                <button type="button" data-range="1y" class="btn btn-outline-primary">1Y</button>
+                            </div>
+                        </div>
+                        <canvas id="priceChart" height="200"></canvas>
+                    </div>
+                    <div id="no-watchlist" class="text-center mt-5" style="display: none;">
+                        <p class="fs-4">No stocks in your watchlist yet.</p>
+                        <p class="text-muted">Add stocks to track their live prices and trends.</p>
+                    </div>
+
+
+                </section>
+
+                <!-- Predictions Section -->
+                <section id="predictions" style="display:none">
+                    <h2>ML Predictions</h2>
+
+                    <!-- 📣 NOTE: only these tickers are supported -->
+                    <p class="text-muted small">
+                        Predictions currently available only for:
+                        AAPL, MSFT, GOOG, TSLA, NVDA,
+                        META, AMZN, JPM, V, UNH,
+                        JNJ, XOM, PG, HD, MA,
+                        BAC, AVGO, LLY, MRK, PEP,
+                        COST, ABBV, KO, WMT, CVX,
+                        ADBE, CRM, MCD, CSCO, DIS,
+                        TXN, PFE, NFLX, INTC, VZ,
+                        TMO, QCOM, WFC, ABT, NKE,
+                        ACN, DHR, UPS, LIN, PM,
+                        NEE, AMGN, LOW, MDT, MS
+                    </p>
+
+                    <div class="input-group mb-3">
+
+                        <!-- 1a) Input to add tickers -->
+                        <div class="input-group mb-3">
+                            <input type="text" id="predSymbolInput" class="form-control"
+                                placeholder="Add ticker (e.g. AAPL)" />
+                            <button class="btn btn-primary" id="addPredSymbol">Add</button>
+                        </div>
+
+                        <!-- 1b) Container for cards -->
+                        <div class="row" id="prediction-cards"></div>
+                </section>
+
+                <!-- Profile Section -->
+                <section id="profile" style="display: none;">
+                    <h2 class="section-title">
+                        <i class="fas fa-user me-2"></i>My Profile & Holdings
+                    </h2>
+                    <form id="holdings-form">
+                        <div class="table-responsive mb-3">
+                            <table class="table align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Ticker</th>
+                                        <th>Quantity</th>
+                                        <th>Average Price</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="holdings-body">
+                                    <tr>
+                                        <td>
+                                            <input type="text" class="form-control" name="ticker" placeholder="AAPL"
+                                                required>
+                                        </td>
+                                        <td>
+                                            <input type="number" class="form-control" name="quantity" value="0" min="0"
+                                                required>
+                                        </td>
+                                        <td>
+                                            <input type="number" class="form-control" name="price" value="0" min="0"
+                                                step="0.01" required>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-danger btn-sm remove-row">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <button type="button" id="add-row" class="btn btn-outline-info mb-3">
+                            <i class="fas fa-plus me-1"></i>Add Holding
+                        </button>
+                        <button type="button" id="calculateBtn" class="btn btn-primary mb-3">
+                            <i class="fas fa-calculator me-1"></i>Calculate Total
+                        </button>
+                        <button type="button" id="refreshBtn" class="btn btn-secondary mb-3 ms-2">
+                            <i class="fas fa-sync-alt me-1"></i>Refresh
+                        </button>
+
+                    </form>
+                    <div id="holdings-result"></div>
+                </section>
+
+                <!-- Alerts Section Bennnn help for thiss -->
+                <section id="alerts" style="display:none;">
+                    <h2 class="section-title">
+                        <i class="fas fa-bell me-2"></i>Price Alerts
+                    </h2>
+
+                    <!-- Notification‐permission warning -->
+                    <div id="notificationWarning" class="alert alert-warning" style="display:none; margin-bottom:1rem;">
+                        <!-- text injected by JS -->
+                    </div>
+
+                    <!-- 1) Form to add a new alert -->
+                    <form id="alerts-form" class="row g-3 align-items-end mb-4">
+                        <div class="col-sm-4">
+                            <label class="form-label">Symbol</label>
+                            <input type="text" id="alertSymbol" class="form-control" placeholder="e.g. AAPL" required>
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="form-label">Target Price</label>
+                            <input type="number" id="alertPrice" class="form-control" step="0.01"
+                                placeholder="e.g. 150.00" required>
+                        </div>
+                        <div class="col-sm-3">
+                            <label class="form-label">Condition</label>
+                            <select id="alertCondition" class="form-select">
+                                <option value="above">Above</option>
+                                <option value="below">Below</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-1">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- 2) List of active alerts -->
+                    <div class="table-responsive mb-4">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Symbol</th>
+                                    <th>Price</th>
+                                    <th>When</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="alerts-list">
+                                <!-- JS will populate -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+
+                <!-- ─── Analysis Section ───────────────────────────────────────── -->
+                <section id="analysis" style="display:none;">
+                    <h2 class="section-title">
+                        <i class="fas fa-chart-area me-2"></i>Portfolio Analysis
+                    </h2>
+                    <p>Click below to get a risk &amp; diversification report:</p>
+                    <button id="runAnalysis" class="btn btn-primary mb-4">
+                        <i class="fas fa-play me-1"></i>Run Analysis
+                    </button>
+
+                    <div class="row g-4">
+                        <!-- Key Metrics -->
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body" id="analysis-metrics">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Sector Breakdown cleev'nt-->
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body" id="analysis-breakdown">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Recommendations -->
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body" id="analysis-recommendations">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <!-- ─────────────────────────────────────────────────────────────────────────── -->
+
+
+            </main>
+        </div>
+
+        <!-- Toggle Sections & Navbar Active-State Logic -->
+
+        <script>
+            function showSection() {
+                // default to "#dashboard"
+                let current = window.location.hash.substring(1);
+                if (!current) {
+                    current = 'dashboard';
+                    history.replaceState(null, null, '#dashboard');
+                }
+                // hide/show each section based on the hash
+                document.querySelectorAll('main section').forEach(sec => {
+                    sec.style.display = (sec.id === current ? 'block' : 'none');
+                });
+                // toggle active class on nav links
+                document.querySelectorAll('.navbar-nav .nav-link').forEach(link => {
+                    link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+                });
+                // if we've just shown Alerts, refresh the notification‐disabled banner
+                if (current === 'alerts') {
+                    updateNotificationWarning();
+                }
+            }
+
+            window.addEventListener('hashchange', showSection);
+            // call showSection() manually after auth-check
+        </script>
+
+
+        <!-- Main Dashboard Logic (priceChart updates via Socket.IO)                  -->
+        <script src="dashboard.js"></script>
+
+        <!-- Bootstrap JS Bundle                                                     -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+
+        <!-- AUTHENTICATION CHECK (calls showSection() upon success)                  -->
+        <script>
+            (async () => {
+                // Pull the JWT from localStorage
+                const token = localStorage.getItem('jwt');
+                if (!token) {
+                    // no token → back to login
+                    window.location.href = '/';
+                    return;
+                }
+
+                try {
+                    // verify token by calling /me
+                    const res = await fetch('/me', {
+                        headers: { Authorization: 'Bearer ' + token },
+                    });
+                    if (!res.ok) {
+                        // 401 or 403 → token invalid/expired. Redirect to login.
+                        localStorage.removeItem('jwt');
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    // → if 200 OK, user is authenticated. Now show correct section:
+                    showSection();
+                    updateNotificationWarning();
+                } catch (err) {
+                    console.error('Auth check failed:', err);
+                    localStorage.removeItem('jwt');
+                    window.location.href = 'login.html';
+                    return;
+                }
+            })();
+        </script>
+
+        <!-- Footer│ -->
+        <footer>
+            &copy; 2025 BeavantBrokers. All rights reserved.
+        </footer>
+    </div> <!-- end .main-content -->
+
+</body>
+
+</html>

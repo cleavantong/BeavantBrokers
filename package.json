@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "serve:python": "uvicorn predict_service:app --reload --port 8000",
     "serve:node": "node server.js",
-    "start": "concurrently \"npm run serve:python\" \"npm run serve:node\""
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
